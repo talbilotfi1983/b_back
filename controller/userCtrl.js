@@ -1,4 +1,6 @@
 const User = require("../models/userModel");
+const Product = require("../models/productModel");
+const Cart = require("../models/cartModel");
 const {sendEmail} = require("./emailCtrl");
 const {generateToken} = require("../config/jwtToken");
 const {generateRefreshToken} = require("../config/refreshtoken");
@@ -160,8 +162,8 @@ const unblockUser = asyncHandler(async (req, res) => {
     }
 });
 const updatePassword = asyncHandler(async (req, res) => {
-    console.log('update')
     const {_id} = req.user;
+    validateMongoDbId(id);
     const {password} = req.body;
     validateMongoDbId(_id);
     const user = await User.findById(_id);
@@ -208,6 +210,76 @@ const resetPassword = asyncHandler(async (req, res) => {
     await user.save();
     res.send(user);
 });
+const getWishList = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    const {id} = req.body;
+    try {
+        const user = await User.findById(_id).populate("wishlist");
+        res.json(user)
+    } catch (e) {
+        throw new Error(e);
+    }
+});
+const saveUserAdress = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    const {address} = req.body;
+    try {
+        const user = await User.findByIdAndUpdate(_id, {
+                address: address
+            },
+            {new: true});
+        res.json(user)
+    } catch (e) {
+        throw new Error(e);
+    }
+});
+const addUserCart = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    validateMongoDbId(_id);
+    const {cart} = req.body;
+    try {
+        const user = await User.findById(_id);
+        const alreadyUserCart = await Cart.findOne({orderby: user._id});
+        if (alreadyUserCart) {
+            alreadyUserCart.remove()
+        }
+        const products = [];
+        let cartTotal = 0;
+
+        for (let i = 0; i < cart.length; i++) {
+            let obj = {};
+            obj.product = cart[i]._id;
+            obj.count = cart[i].count;
+            obj.color = cart[i].color;
+            const product = await Product.findById(cart[i]._id).select('price').exec();
+            obj.price = product.price;
+            products.push(obj);
+            cartTotal += Number(obj.price) * Number(obj.count);
+        }
+        let newCart = (await new Cart({
+            products: products,
+            cartTotal: cartTotal,
+            orderby: user._id
+        }).save());
+        newCart = await newCart.populate("products.product")
+        res.json(newCart)
+    } catch (e) {
+        throw new Error(e);
+    }
+});
+const getUserCart = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    validateMongoDbId(_id);
+    try {
+        const user = await User.findById(_id);
+        const alreadyUserCart = await Cart.findOne({orderby: user._id}).populate("products.product");
+        if (alreadyUserCart) {
+            res.json(alreadyUserCart)
+        }
+    } catch (e) {
+        throw new Error(e);
+    }
+});
 module.exports = {
     createUser,
     login,
@@ -221,5 +293,9 @@ module.exports = {
     logout,
     updatePassword,
     forgotPasswordToken,
-    resetPassword
+    resetPassword,
+    getWishList,
+    saveUserAdress,
+    addUserCart,
+    getUserCart
 };

@@ -36,6 +36,9 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
     },
+    address: {
+        type: String
+    },
     passwordResetToken: String,
     passwordChangedAt: Date,
     passwordResetExpires: Date,
@@ -43,11 +46,11 @@ const userSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-    address: [{type: mongoose.Schema.Types.ObjectId, ref: "Address"}],
+
     wishlist: [{type: mongoose.Schema.Types.ObjectId, ref: "Product"}],
 }, {timestamps: true});
 userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")){
+    if (!this.isModified("password")) {
         next();
     }
     const salt = await bcrypt.genSaltSync(10);
