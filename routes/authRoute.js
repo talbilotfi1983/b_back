@@ -2,7 +2,7 @@ const express = require('express');
 const {
     createUser, login, getUsers, getOneUser, deleteUser, forgotPasswordToken, resetPassword,
     updateUser, blockUser, unblockUser, handleRefreshToken, logout, updatePassword, getWishList,
-    saveUserAdress, addUserCart,getUserCart
+    saveUserAdress, addUserCart, getUserCart, removeUserCart, applayCoupon
 } = require('../controller/userCtrl');
 const {authMiddlewares, isAdmin, isBlocked} = require('../middlewares/authMiddlewares');
 const router = express.Router();
@@ -17,10 +17,12 @@ router.get("/getUserCart", authMiddlewares, getUserCart);
 router.get("/all", authMiddlewares, isAdmin, isBlocked, getUsers);
 router.get("/refresh", handleRefreshToken);
 router.get("/:id", authMiddlewares, isAdmin, isBlocked, getOneUser);
+router.delete("/removeUserCart", authMiddlewares, removeUserCart);
 router.delete("/:id", deleteUser);
 router.put("/resetPassword/:token", resetPassword);
 router.put("/updatePassword", authMiddlewares, updatePassword);
 router.put("/saveUserAdress", authMiddlewares, saveUserAdress);
+router.put("/applayCoupon", authMiddlewares, applayCoupon);
 router.put("/:id", updateUser);
 router.put("/block/:id", authMiddlewares, isAdmin, isBlocked, blockUser);
 router.put("/unblock/:id", authMiddlewares, isAdmin, isBlocked, unblockUser);

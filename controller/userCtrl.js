@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
+const Coupon = require("../models/couponModel");
 const {sendEmail} = require("./emailCtrl");
 const {generateToken} = require("../config/jwtToken");
 const {generateRefreshToken} = require("../config/refreshtoken");
@@ -280,7 +281,36 @@ const getUserCart = asyncHandler(async (req, res) => {
         throw new Error(e);
     }
 });
+const removeUserCart = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    validateMongoDbId(_id);
+    console.log(_id)
+    try {
+        const alreadyUserCart = await Cart.findOneAndRemove({orderby: _id});
+        res.json(alreadyUserCart)
+    } catch (e) {
+        throw new Error(e);
+    }
+});
+const applayCoupon = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    validateMongoDbId(_id);
+    const {title} = req.body;
+    try {
+        const coupon = await Coupon.findOne({title: title});
+        const user = await User.findById(_id);
+        const {cartTotal} = await Cart.findOne({orderby:user._id});
+        const totalAfterDiscount = cartTotal*(1 - coupon.discount/100);
+        const newcart = await Cart.findOneAndUpdate({orderby: _id},
+            {totalAfterDiscount: totalAfterDiscount},
+            {new: true});
+        res.json(newcart)
+    } catch (e) {
+        throw new Error(e);
+    }
+});
 module.exports = {
+    removeUserCart,
     createUser,
     login,
     getUsers,
@@ -297,5 +327,6 @@ module.exports = {
     getWishList,
     saveUserAdress,
     addUserCart,
-    getUserCart
+    getUserCart,
+    applayCoupon
 };
