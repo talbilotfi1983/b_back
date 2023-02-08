@@ -362,6 +362,23 @@ const getOrder = asyncHandler(async (req, res) => {
         throw new Error(e);
     }
 });
+const updateOrderStatus = asyncHandler(async (req, res) => {
+    const {_id} = req.user;
+    const {status} = req.body;
+    const {id} = req.params;
+    validateMongoDbId(_id);
+
+    try {
+        const updateOrderStatus = await Order.findByIdAndUpdate(id, {
+                orderStatus: status,
+                paymentIntent: {status: status}
+            },
+            {new: true});
+        res.json(updateOrderStatus)
+    } catch (e) {
+        throw new Error(e);
+    }
+});
 module.exports = {
     removeUserCart,
     createUser,
@@ -383,5 +400,6 @@ module.exports = {
     getUserCart,
     applayCoupon,
     createOrder,
-    getOrder
+    getOrder,
+    updateOrderStatus
 };
