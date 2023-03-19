@@ -5,6 +5,7 @@ const dbConnect = () => {
             console.log(error)
         } else {
             console.log("DATABASE CONNECT SUCCESSFULL")
+
         }
     })
 }

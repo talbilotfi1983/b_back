@@ -22,7 +22,7 @@ const createUser = asyncHandler(async (req, res) => {
     }
 });
 const login = asyncHandler(async (req, res) => {
-    console.log('login')
+    console.log('login', req.body)
     const {email, password} = req.body;
     const findUser = await User.findOne({email: email});
     if (findUser && await findUser.isPasswordMatched(password)) {
@@ -45,6 +45,7 @@ const login = asyncHandler(async (req, res) => {
             token: generateToken(findUser._id)
         });
     } else {
+        console.log(1213)
         throw new Error('Invalid credentials');
     }
 });
@@ -80,6 +81,7 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
 
 });
 const getUsers = asyncHandler(async (req, res) => {
+    console.log('users')
     try {
         const users = await User.find();
         res.json(users)

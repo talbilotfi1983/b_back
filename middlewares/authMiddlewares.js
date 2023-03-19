@@ -3,7 +3,6 @@ const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const authMiddlewares = asyncHandler(async (req, res, next) => {
     let token;
-    console.log('authMiddlewares')
     if (req.headers?.authorization?.startsWith('Bearer')) {
         token = req?.headers?.authorization?.split(" ")[1];
         try {
