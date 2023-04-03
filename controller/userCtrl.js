@@ -26,7 +26,6 @@ const login = asyncHandler(async (req, res) => {
     let {email, password} = req.body;
     const findUser = await User.findOne({email: email});
     const findGarage = await Garage.findOne({email_garage: email});
-    mot_de_passe = '123456'
     if (findUser && await findUser.isPasswordMatched(password)) {
         const refreshToken = await generateRefreshToken(findUser._id);
         const updateUser = await User.findByIdAndUpdate(findUser._id, {
@@ -62,7 +61,7 @@ const login = asyncHandler(async (req, res) => {
             role: 'Garage',
             token: generateToken(findGarage._id),
             firstname: findGarage.nom_garage,
-            password: findUser.mot_de_passe,
+            password: findGarage.mot_de_passe,
         });
     } else {
         throw new Error('Invalid credentials');
