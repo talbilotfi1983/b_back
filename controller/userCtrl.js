@@ -10,6 +10,7 @@ const {generateRefreshToken} = require("../config/refreshtoken");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbid");
 const jwt = require("jsonwebtoken");
+const Garage = require("../models/garageModel");
 crypto = require('crypto')
 const createUser = asyncHandler(async (req, res) => {
     const email = req.body.email;
@@ -22,9 +23,10 @@ const createUser = asyncHandler(async (req, res) => {
     }
 });
 const login = asyncHandler(async (req, res) => {
-    console.log('login', req.body)
-    const {email, password} = req.body;
+    let {email, password} = req.body;
     const findUser = await User.findOne({email: email});
+    const findGarage = await Garage.findOne({email_garage: email});
+    mot_de_passe = '123456'
     if (findUser && await findUser.isPasswordMatched(password)) {
         const refreshToken = await generateRefreshToken(findUser._id);
         const updateUser = await User.findByIdAndUpdate(findUser._id, {
@@ -44,8 +46,25 @@ const login = asyncHandler(async (req, res) => {
             role: findUser.role,
             token: generateToken(findUser._id)
         });
+    } else if (findGarage && await findGarage.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findGarage._id);
+        await Garage.findByIdAndUpdate(findGarage._id, {
+            refreshToken: refreshToken
+        }, {new: true});
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            maxAge: 72 * 60 * 60 * 1000
+        })
+        res.json({
+            _id: findGarage._id,
+            email: findGarage.email_garage,
+            mobile: findGarage.telephone_garage,
+            role: 'Garage',
+            token: generateToken(findGarage._id),
+            firstname: findGarage.nom_garage,
+            password: findUser.mot_de_passe,
+        });
     } else {
-        console.log(1213)
         throw new Error('Invalid credentials');
     }
 });
