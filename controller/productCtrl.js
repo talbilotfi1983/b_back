@@ -154,7 +154,7 @@ const uploadImages = asyncHandler(async (req, res) => {
             const {path} = file;
             const newpath = await uploader(path);
             urls.push(newpath);
-            console.log(path)
+            console.log(newpath)
             //unlinkPromise(path)
         }
         const findProduct = await Product.findByIdAndUpdate(id, {

@@ -17,11 +17,6 @@ const dotenv = require("dotenv").config();
 const PORT = process.env.PORT || 4000;
 const cookieParser = require("cookie-parser");
 dbConnect();
-/*
-app.use('/', (req, res) => {
-    res.send('Hello from server side');
-})
- */
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(cors());

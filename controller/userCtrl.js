@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const Coordonnee = require("../models/coordonneeModel");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
 const Coupon = require("../models/couponModel");
@@ -13,56 +14,56 @@ const jwt = require("jsonwebtoken");
 const Garage = require("../models/garageModel");
 crypto = require('crypto')
 const createUser = asyncHandler(async (req, res) => {
-    const email = req.body.email;
-    const findUser = await User.findOne({email: email});
-    if (!findUser) {
-        const user = await User.create(req.body);
-        res.json(user);
+    const {email} = req.body;
+    const findCoordonnee = await Coordonnee.findOne({email});
+    if (!findCoordonnee) {
+        const {firstname, lastname} = req.body;
+        const infosUser = {
+            firstname, lastname
+        }
+        const user = await User.create(infosUser);
+        const {email, mobile, adress, city, password, role} = req.body;
+        const infosCoordonnee = {
+            email, mobile, adress, city, password, role,
+            user: user._id
+        }
+        let newCoodonnee = await Coordonnee.create(infosCoordonnee);
+        newCoodonnee = await newCoodonnee.populate("user")
+        res.json(newCoodonnee);
     } else {
         throw new Error('User already exists');
     }
 });
 const login = asyncHandler(async (req, res) => {
     let {email, password} = req.body;
-    const findUser = await User.findOne({email: email});
-    const findGarage = await Garage.findOne({email_garage: email});
-    if (findUser && await findUser.isPasswordMatched(password)) {
-        const refreshToken = await generateRefreshToken(findUser._id);
-        const updateUser = await User.findByIdAndUpdate(findUser._id, {
+    let findCoordonnee = await Coordonnee.findOne({email: email});
+    if (findCoordonnee && await findCoordonnee.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findCoordonnee._id);
+        await Coordonnee.findByIdAndUpdate(findCoordonnee._id, {
             refreshToken: refreshToken
         }, {new: true});
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             maxAge: 72 * 60 * 60 * 1000
         })
-        res.json({
-            _id: findUser._id,
-            firstname: findUser.firstname,
-            lastname: findUser.lastname,
-            email: findUser.email,
-            mobile: findUser.mobile,
-            password: findUser.password,
-            role: findUser.role,
-            token: generateToken(findUser._id)
-        });
-    } else if (findGarage && await findGarage.isPasswordMatched(password)) {
-        const refreshToken = await generateRefreshToken(findGarage._id);
-        await Garage.findByIdAndUpdate(findGarage._id, {
-            refreshToken: refreshToken
-        }, {new: true});
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            maxAge: 72 * 60 * 60 * 1000
-        })
-        res.json({
-            _id: findGarage._id,
-            email: findGarage.email_garage,
-            mobile: findGarage.telephone_garage,
-            role: 'Garage',
-            token: generateToken(findGarage._id),
-            firstname: findGarage.nom_garage,
-            password: findGarage.mot_de_passe,
-        });
+        let resp = {
+            _id: findCoordonnee._id,
+            email: findCoordonnee.email,
+            mobile: findCoordonnee.mobile,
+            role: findCoordonnee.role,
+            token: generateToken(findCoordonnee._id),
+            password: findCoordonnee.password
+        }
+        if (findCoordonnee.role === 'garage') {
+            findCoordonnee = await findCoordonnee.populate("garage")
+            resp.name = findCoordonnee.garage.name
+            resp.logo = findCoordonnee.garage.logo
+        } else {
+            findCoordonnee = await findCoordonnee.populate("user")
+            resp.firstname = findCoordonnee.user.firstname
+            resp.lastname = findCoordonnee.user.lastname
+        }
+        res.json(resp);
     } else {
         throw new Error('Invalid credentials');
     }
