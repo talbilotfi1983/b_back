@@ -1,11 +1,32 @@
 const express = require('express');
 const {
-    createUser, login, getUsers, getOneUser, deleteUser, forgotPasswordToken, resetPassword,
-    updateUser, blockUser, unblockUser, handleRefreshToken, logout, updatePassword, getWishList,
-    saveUserAdress, addUserCart, getUserCart, removeUserCart, applayCoupon, createOrder, getOrder, updateOrderStatus
+    createUser,
+    login,
+    getUsers,
+    getOneUser,
+    deleteUser,
+    forgotPasswordToken,
+    resetPassword,
+    updateUser,
+    blockUser,
+    unblockUser,
+    handleRefreshToken,
+    logout,
+    updatePassword,
+    getWishList,
+    saveUserAdress,
+    addUserCart,
+    getUserCart,
+    removeUserCart,
+    applayCoupon,
+    createOrder,
+    getOrder,
+    updateOrderStatus,
+    contactAdmin
 } = require('../controller/userCtrl');
 const {authMiddlewares, isAdmin, isBlocked} = require('../middlewares/authMiddlewares');
 const router = express.Router();
+router.post("/contactAdmin", contactAdmin);
 router.post("/add", createUser);
 router.post("/forgotPasswordToken", forgotPasswordToken);
 router.post("/resetPassword", forgotPasswordToken);

@@ -201,11 +201,11 @@ const updatePassword = asyncHandler(async (req, res) => {
 });
 const forgotPasswordToken = asyncHandler(async (req, res) => {
     const {email} = req.body;
-    const user = await User.findOne({email});
-    if (!user) throw new Error('User not found whith this email');
+    const coordonnee = await Coordonnee.findOne({email});
+    if (!coordonnee) throw new Error('User not found whith this email');
     try {
-        const token = await user.createPasswordResetToken();
-        await user.save();
+        const token = await coordonnee.createPasswordResetToken();
+        await coordonnee.save();
         const resetURl = `Hi, please follow this link to reset your password, This link is valid 10 mn from now <a href='http://localhost:5001/api/user/resetPassword/${token}'>Click here</a>`;
         const data = {
             to: email,
@@ -215,6 +215,26 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
         }
         sendEmail(data);
         res.json(token);
+    } catch (e) {
+        throw  new Error(e);
+    }
+});
+const contactAdmin = asyncHandler(async (req, res) => {
+    const {subject, message, email, firstname, lastname, mobile} = req.body
+    try {
+        const resetURl =
+            `${firstname} ${lastname} <br/> 
+             Email : ${email} <br/>
+             Telephone : ${mobile} <br/>
+             Message : ${message}<br/>`;
+        const data = {
+            to: process.env.EMAIL_ADMIN,
+            subject: subject,
+            htm: resetURl,
+            text: 'Hey user'
+        }
+        sendEmail(data);
+        res.json({message: "success"})
     } catch (e) {
         throw  new Error(e);
     }
@@ -422,5 +442,6 @@ module.exports = {
     applayCoupon,
     createOrder,
     getOrder,
-    updateOrderStatus
+    updateOrderStatus,
+    contactAdmin
 };
