@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken");
 const Garage = require("../models/garageModel");
 crypto = require('crypto')
 const createUser = asyncHandler(async (req, res) => {
+    console.log('Add User','------------------------')
     const {email} = req.body;
     const findCoordonnee = await Coordonnee.findOne({email});
     if (!findCoordonnee) {
@@ -39,9 +40,9 @@ const login = asyncHandler(async (req, res) => {
     let findCoordonnee = await Coordonnee.findOne({email: email});
     if (findCoordonnee && await findCoordonnee.isPasswordMatched(password)) {
         const refreshToken = await generateRefreshToken(findCoordonnee._id);
-        await Coordonnee.findByIdAndUpdate(findCoordonnee._id, {
+      /*  await Coordonnee.findByIdAndUpdate(findCoordonnee._id, {
             refreshToken: refreshToken
-        }, {new: true});
+        }, {new: true});*/
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             maxAge: 72 * 60 * 60 * 1000
