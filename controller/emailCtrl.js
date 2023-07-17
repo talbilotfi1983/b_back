@@ -7,8 +7,8 @@ const sendEmail = asyncHandler(async (data, req, res) => {
         port: 587,
         secure: false, // true for 465, false for other ports
         auth: {
-            user: 'tl0753662720@gmail.com',
-            pass: 'nqnnypzmzggrlhku'
+            user: 'pneubobo@gmail.com',
+            pass: 'cdqihamkdhdxgswh'
         },
     });
     // send mail with defined transport object

@@ -14,60 +14,70 @@ const jwt = require("jsonwebtoken");
 const Garage = require("../models/garageModel");
 crypto = require('crypto')
 const createUser = asyncHandler(async (req, res) => {
-    console.log('Add User','------------------------')
-    const {email} = req.body;
-    const findCoordonnee = await Coordonnee.findOne({email});
-    if (!findCoordonnee) {
-        const {firstname, lastname} = req.body;
-        const infosUser = {
-            firstname, lastname
-        }
-        const user = await User.create(infosUser);
-        const {email, mobile, adress, city, password, role} = req.body;
-        const infosCoordonnee = {
-            email, mobile, adress, city, password, role,
-            user: user._id
-        }
-        let newCoodonnee = await Coordonnee.create(infosCoordonnee);
-        newCoodonnee = await newCoodonnee.populate("user")
-        res.json(newCoodonnee);
-    } else {
-        throw new Error('User already exists');
-    }
+  const { email } = req.body;
+    console.log('add user')
+  const findCoordonnee = await Coordonnee.findOne({ email });
+  if (!findCoordonnee) {
+    const { firstname, lastname } = req.body;
+    const infosUser = {
+      firstname,
+      lastname,
+    };
+    const user = await User.create(infosUser);
+    const { email, mobile, adress, city, password, role } = req.body;
+    const infosCoordonnee = {
+      email,
+      mobile,
+      adress,
+      city,
+      password,
+      role,
+      user: user._id,
+    };
+    let newCoodonnee = await Coordonnee.create(infosCoordonnee);
+    newCoodonnee = await newCoodonnee.populate("user");
+    res.json(newCoodonnee);
+  } else {
+    res.sendStatus(702);
+  }
 });
 const login = asyncHandler(async (req, res) => {
-    let {email, password} = req.body;
-    let findCoordonnee = await Coordonnee.findOne({email: email});
-    if (findCoordonnee && await findCoordonnee.isPasswordMatched(password)) {
-        const refreshToken = await generateRefreshToken(findCoordonnee._id);
-      /*  await Coordonnee.findByIdAndUpdate(findCoordonnee._id, {
-            refreshToken: refreshToken
-        }, {new: true});*/
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            maxAge: 72 * 60 * 60 * 1000
-        })
-        let resp = {
-            _id: findCoordonnee._id,
-            email: findCoordonnee.email,
-            mobile: findCoordonnee.mobile,
-            role: findCoordonnee.role,
-            token: generateToken(findCoordonnee._id),
-            password: findCoordonnee.password
-        }
-        if (findCoordonnee.role === 'garage') {
-            findCoordonnee = await findCoordonnee.populate("garage")
-            resp.name = findCoordonnee.garage.name
-            resp.logo = findCoordonnee.garage.logo
-        } else {
-            findCoordonnee = await findCoordonnee.populate("user")
-            resp.firstname = findCoordonnee.user.firstname
-            resp.lastname = findCoordonnee.user.lastname
-        }
-        res.json(resp);
+  let { email, password } = req.body;
+  let findCoordonnee = await Coordonnee.findOne({ email: email });
+  if (findCoordonnee && (await findCoordonnee.isPasswordMatched(password))) {
+    const refreshToken = await generateRefreshToken(findCoordonnee._id);
+    await Coordonnee.findByIdAndUpdate(
+      findCoordonnee._id,
+      {
+        refreshToken: refreshToken,
+      },
+      { new: true }
+    );
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 72 * 60 * 60 * 1000,
+    });
+    let resp = {
+      _id: findCoordonnee._id,
+      email: findCoordonnee.email,
+      mobile: findCoordonnee.mobile,
+      role: findCoordonnee.role,
+      token: generateToken(findCoordonnee._id),
+      password: findCoordonnee.password,
+    };
+    if (findCoordonnee.role === "garage") {
+      findCoordonnee = await findCoordonnee.populate("garage");
+      resp.name = findCoordonnee.garage.name;
+      resp.logo = findCoordonnee.garage.logo;
     } else {
-        throw new Error('Invalid credentials');
+      findCoordonnee = await findCoordonnee.populate("user");
+      resp.firstname = findCoordonnee.user.firstname;
+      resp.lastname = findCoordonnee.user.lastname;
     }
+    res.json(resp);
+  } else {
+    throw new Error("Invalid credentials");
+  }
 });
 const logout = asyncHandler(async (req, res) => {
     const cookie = req.cookies;
